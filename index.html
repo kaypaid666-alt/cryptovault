@@ -977,14 +977,14 @@ function renderTable(coins) {
     const change = parseFloat(c.changePercent24Hr);
     const changeClass = change >= 0 ? 'up' : 'down';
     const changeSign  = change >= 0 ? '+' : '';
-    const imgUrl = `https://assets.coincap.io/assets/icons/${c.symbol.toLowerCase()}@2x.png`;
+    const imgUrl = c.image || `https://assets.coincap.io/assets/icons/${(c.symbol||'').toLowerCase()}@2x.png`;
     return `<tr>
       <td style="color:var(--muted);font-size:13px">${i + 1}</td>
       <td><div class="coin-info">
         <img src="${imgUrl}" alt="${c.name}" style="width:36px;height:36px;border-radius:50%" onerror="this.style.display='none'">
         <div><div class="coin-name">${c.name}</div><div class="coin-symbol">${c.symbol}</div></div>
       </div></td>
-      <td class="coin-price">$${price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+      <td class="coin-price">$${price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
       <td><span class="coin-change ${changeClass}">${changeSign}${change.toFixed(2)}%</span></td>
       <td class="coin-cap">${formatNum(c.marketCapUsd)}</td>
       <td class="coin-volume">${formatNum(c.volumeUsd24Hr)}</td>
