@@ -45,10 +45,16 @@ app.post('/api/chat', async (req, res) => {
 // ─── CRYPTO PRICES (BTC, ETH for landing tickers) ───────────────────
 app.get('/api/crypto/landing', async (req, res) => {
   try {
-    const response = await fetch('https://api.coincap.io/v2/assets?ids=bitcoin,ethereum');
-    const { data } = await response.json();
-    res.json(data);
+    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true', {
+      headers: { 'Accept': 'application/json', 'User-Agent': 'CryptoVault/1.0' }
+    });
+    const data = await response.json();
+    res.json([
+      { id: 'bitcoin', symbol: 'BTC', priceUsd: data.bitcoin.usd, changePercent24Hr: data.bitcoin.usd_24h_change },
+      { id: 'ethereum', symbol: 'ETH', priceUsd: data.ethereum.usd, changePercent24Hr: data.ethereum.usd_24h_change }
+    ]);
   } catch (err) {
+    console.error('Landing crypto error:', err.message);
     res.status(500).json({ error: 'Failed to fetch crypto prices' });
   }
 });
@@ -56,10 +62,24 @@ app.get('/api/crypto/landing', async (req, res) => {
 // ─── CRYPTO TABLE (dashboard live market) ───────────────────────────
 app.get('/api/crypto/market', async (req, res) => {
   try {
-    const response = await fetch('https://api.coincap.io/v2/assets?limit=10');
-    const { data } = await response.json();
+    const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false&price_change_percentage=24h', {
+      headers: { 'Accept': 'application/json', 'User-Agent': 'CryptoVault/1.0' }
+    });
+    const coins = await response.json();
+    // Normalize to same format as CoinCap
+    const data = coins.map(c => ({
+      id: c.id,
+      name: c.name,
+      symbol: c.symbol.toUpperCase(),
+      priceUsd: c.current_price,
+      changePercent24Hr: c.price_change_percentage_24h,
+      marketCapUsd: c.market_cap,
+      volumeUsd24Hr: c.total_volume,
+      image: c.image
+    }));
     res.json(data);
   } catch (err) {
+    console.error('Market error:', err.message);
     res.status(500).json({ error: 'Failed to fetch market data' });
   }
 });
